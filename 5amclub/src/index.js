@@ -2,30 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-
-import { BrowserRouter as Router, Link, Route, Routes, Switch } from 'react-router-dom';
-import HomePage from "./pages/HomePage";
-import DashboardPage from "./pages/DashboardPage";
+import App from './App';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-const auth = localStorage.getItem('auth')
 root.render(
-  <Router>
-    {!!auth ?
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/home" element={<HomePage />} />
-      </Routes> :
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-      </Routes>}
-  </Router>
-
+  <App />
 );
 
 

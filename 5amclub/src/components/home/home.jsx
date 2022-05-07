@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 
 
 import { initializeApp } from "firebase/app";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createUser } from '../../functions/userData';
 
 import logo from "../../assets/logo.jpg"
@@ -44,6 +44,13 @@ const Home = () => {
     const [signInView, setSignInView] = useState(false)
     const [text, setText] = useState('Create Account')
 
+    useEffect(() => {
+        console.log(localStorage.getItem('auth'))
+        if (localStorage.getItem('auth') && (localStorage.getItem('auth') != "loggedOut")) {
+            navigate('/dashboard')
+        }
+    }, [])
+
     function createAccount(event) {
         event.preventDefault()
         const form = event.currentTarget
@@ -59,8 +66,12 @@ const Home = () => {
                     fName, lName, email
                 })
                 const user = userCredential.user;
-                localStorage.setItem('auth', user.uid)
-                navigate('/dashboard', { replace: true })
+                function run() {
+                    localStorage.setItem('auth', user.uid)
+                    navigate('/dashboard', { replace: true })
+                }
+                setTimeout(run, 2000)
+
 
             })
             .catch((error) => {

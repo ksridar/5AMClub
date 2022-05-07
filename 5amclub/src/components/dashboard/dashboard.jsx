@@ -40,9 +40,13 @@ const Dashboard = () => {
     const [confettiState, setConfettiState] = useState(false)
 
 
-
     useEffect(() => {
+        
         async function get() {
+            if (localStorage.getItem("auth")) {
+            } else {
+                navigate('/home')
+            }
             const data = await getUserDetails()
             const graph = await lastSevenDays()
             const table = await getLeaderBoard()
@@ -66,6 +70,7 @@ const Dashboard = () => {
         }
 
         get()
+        
         let d = new Date()
         setInterval(() => {
             let d = new Date()
@@ -108,8 +113,8 @@ const Dashboard = () => {
                         /></Navbar.Brand>
                         <Navbar.Brand href="#home"></Navbar.Brand>
                         <Nav.Link onClick={() => {
-                            localStorage.setItem("auth", null)
                             navigate('/home')
+                            localStorage.setItem('auth', "loggedOut")
                         }} style={{ padding: "5px", backgroundColor: "red", color: "white", border: "1px solid red", borderRadius: "12px" }}>Log Out</Nav.Link>
 
                     </Container>
@@ -122,20 +127,20 @@ const Dashboard = () => {
                         <div className="topView">
                             <h6>{time}</h6>
                             <h6>Welcome <i>{fName}!</i></h6>
-                            
+                    
                         </div>
                         <hr></hr>
                         <div className="buttonTab">
                         {buttonStatus ?
                                 <Button variant="success" onClick={handleButton} >I WOKE UP!</Button> :
                                 
-                                    <Button variant="success" disabled>I WOKE UP!</Button>
+                                    <Button variant="danger" disabled>Unavailable</Button>
                                 }
                                 <br></br>
                                 <sub>You can click the button between 4:00 AM and 6:00 AM local time</sub>
                         </div>
                         <hr></hr>
-                        <p>Last 7 days</p>
+                        <h6>Last 7 days</h6>
                         <Bar
                             data={{
                                 datasets: [
