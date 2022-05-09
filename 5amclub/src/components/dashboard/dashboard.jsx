@@ -17,7 +17,7 @@ import 'chartjs-adapter-date-fns';
 import { Bar, Line } from 'react-chartjs-2'
 import { min } from 'date-fns/esm';
 
-import {useWindowSize} from '@react-hook/window-size'
+import { useWindowSize } from '@react-hook/window-size'
 import Confetti from 'react-confetti'
 
 import vadivelu from "../../assets/vadivelu.png"
@@ -32,7 +32,7 @@ const Dashboard = () => {
     const [email, setemail] = useState()
     const [daysWokeUpArray, setDaysWokeUpArray] = useState([])
     const [totalDaysWokeUp, setTotalDaysWokeUp] = useState()
-    const [buttonStatus, setButtonStatus] = useState(false)
+    const [buttonStatus, setButtonStatus] = useState('missed')
     const [time, setTime] = useState()
     const [minDate, setMinDate] = useState()
     const [daysWokeUp, setDaysWokeUp] = useState([])
@@ -41,7 +41,7 @@ const Dashboard = () => {
 
 
     useEffect(() => {
-        
+
         async function get() {
             if (localStorage.getItem("auth")) {
             } else {
@@ -64,13 +64,13 @@ const Dashboard = () => {
             console.log(d.toDateString())
             console.log(l.toDateString())
             if (d.getHours() > 4 && d.getHours() < 6 && (d.toDateString() != l.toDateString())) {
-                console.log('cond')
-                setButtonStatus(true)
+                setButtonStatus('available')
+            } else if (d.toDateString() == l.toDateString()) {
+                setButtonStatus('unavailable')
             }
         }
 
         get()
-        
         let d = new Date()
         setInterval(() => {
             let d = new Date()
@@ -88,24 +88,50 @@ const Dashboard = () => {
     async function handleButton() {
         await updateData()
         setConfettiState(true)
-        setButtonStatus(false)
+        setButtonStatus('unavailable')
         function reload() {
             window.location.reload()
         }
         setTimeout(reload, 3000)
     }
 
+    function WakeButton() {
+        if (buttonStatus == "available") {
+            return (
+            <>
+                <Button variant="success" onClick={handleButton} >I WOKE UP!</Button>
+                <br></br>
+                <sub>Click the button to note down that you woke up.</sub>
+            </>)
+        } else if (buttonStatus == "unavailable") {
+            return (
+            <>
+                <Button variant="success" disabled>YOU WOKE UP!</Button>
+                <br></br>
+                <sub>Button available between 4:00AM and 6:00AM Local Time</sub>
+            </>)
+
+        } else if (buttonStatus == "missed") {
+            return (
+            <>
+                <Button variant="danger" disabled>Oops! You missed it.</Button>
+                <br></br>
+                <sub>Button available between 4:00AM and 6:00AM Local Time</sub>
+            </>)
+        }
+    }
+
     return (
         <div className="Dashboard">
-            
+
             <div className="Header">
-            {confettiState ? <Confetti
-                width={1000}
-                height={900}
-            /> : null}
+                {confettiState ? <Confetti
+                    width={1000}
+                    height={900}
+                /> : null}
                 <Navbar bg="light" expand="lg" fixed="top">
                     <Container>
-                    <Navbar.Brand href="#home"><img
+                        <Navbar.Brand href="#home"><img
                             src={vadivelu}
                             width="120"
                             height="50"
@@ -120,24 +146,19 @@ const Dashboard = () => {
                     </Container>
                 </Navbar>
             </div>
-            
+
             <div className="Tab">
                 <Tabs defaultActiveKey="home" id="tab" className="tab">
                     <Tab id="tab" eventKey="home" title="Dashboard" className="innerTab">
                         <div className="topView">
                             <h6>{time}</h6>
                             <h6>Welcome <i>{fName}!</i></h6>
-                    
+
                         </div>
                         <hr></hr>
                         <div className="buttonTab">
-                        {buttonStatus ?
-                                <Button variant="success" onClick={handleButton} >I WOKE UP!</Button> :
-                                
-                                    <Button variant="danger" disabled>Unavailable</Button>
-                                }
-                                <br></br>
-                                <sub>You can click the button between 4:00 AM and 6:00 AM local time</sub>
+                            <WakeButton />
+
                         </div>
                         <hr></hr>
                         <h6>Last 7 days</h6>
@@ -205,20 +226,20 @@ const Dashboard = () => {
 
                     </Tab>
                     <Tab activeColor="ghostwhite" id="tab" eventKey="leaderboard" title="Leaderboard">
-                        <Table striped bordered hover>
+                        <Table striped bordered>
                             <thead>
                                 <tr>
                                     <th>#</th>
                                     <th>Name</th>
-                                    <th>Days Woke Up</th>
+                                    <th># Days Woke Up</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {leaderBoard ? leaderBoard.map((data) => (
                                     <tr>
-                                        <td></td>
+                                        <td style={{ textAlign: "center" }}></td>
                                         <td>{data.name}</td>
-                                        <td>{data.totalDays}</td>
+                                        <td style={{ textAlign: "center" }}>{data.totalDays}</td>
                                     </tr>
                                 )) : null}
                             </tbody>
