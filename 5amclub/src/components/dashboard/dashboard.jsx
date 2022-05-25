@@ -7,8 +7,9 @@ import Button from 'react-bootstrap/esm/Button';
 import { useNavigate } from 'react-router';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
+import Form from 'react-bootstrap/Form'
 import Container from 'react-bootstrap/Container'
-import { getLeaderBoard, getUserDetails, lastSevenDays, updateData } from '../../functions/userData';
+import { getLeaderBoard, getWeeklyLeaderBoard, getUserDetails, lastSevenDays, updateData } from '../../functions/userData';
 
 import { Chart as ChartJS } from 'chart.js/auto'
 import { Chart } from 'react-chartjs-2'
@@ -36,7 +37,9 @@ const Dashboard = () => {
     const [time, setTime] = useState()
     const [minDate, setMinDate] = useState()
     const [daysWokeUp, setDaysWokeUp] = useState([])
-    const [leaderBoard, setLeaderBoard] = useState()
+    const [weeklyLeaderboard, setWeeklyLeaderboard] = useState([])
+    const [leaderboard, setLeaderboard] = useState([])
+    const [tableData, setTableData] = useState('weekly')
     const [confettiState, setConfettiState] = useState(false)
 
 
@@ -49,8 +52,10 @@ const Dashboard = () => {
             }
             const data = await getUserDetails()
             const graph = await lastSevenDays()
-            const table = await getLeaderBoard()
-            setLeaderBoard(table)
+            const weeklyLeaderboard = await getWeeklyLeaderBoard()
+            const leaderboard = await getLeaderBoard()
+            setWeeklyLeaderboard(weeklyLeaderboard)
+            setLeaderboard(leaderboard)
             setDaysWokeUp(graph.wokeUp)
             setMinDate(graph.min)
             setFName(data.fName)
@@ -63,12 +68,14 @@ const Dashboard = () => {
             let l = new Date(latestDate.seconds * 1000)
             console.log(d.toDateString())
             console.log(l.toDateString())
-            if (d.getHours() > 4 && d.getHours() < 6 && (d.toDateString() != l.toDateString())) {
+            if (d.getHours() > 4 && d.getHours() <= 6 && (d.toDateString() != l.toDateString())) {
                 setButtonStatus('available')
             } else if (d.toDateString() == l.toDateString()) {
                 setButtonStatus('unavailable')
             }
         }
+        console.log(weeklyLeaderboard)
+        console.log(leaderboard)
 
         get()
         let d = new Date()
@@ -79,7 +86,7 @@ const Dashboard = () => {
             setTime(day + " " + d.toLocaleTimeString());
         }, 1000);
         d = d.getHours()
-
+        console.log(tableData)
 
 
     }, []);
@@ -98,26 +105,26 @@ const Dashboard = () => {
     function WakeButton() {
         if (buttonStatus == "available") {
             return (
-            <>
-                <Button variant="success" onClick={handleButton} >I WOKE UP!</Button>
-                <br></br>
-                <sub>Click the button to note down that you woke up.</sub>
-            </>)
+                <>
+                    <Button variant="success" onClick={handleButton} >I WOKE UP!</Button>
+                    <br></br>
+                    <sub>Click the button to note down that you woke up.</sub>
+                </>)
         } else if (buttonStatus == "unavailable") {
             return (
-            <>
-                <Button variant="success" disabled>YOU WOKE UP!</Button>
-                <br></br>
-                <sub>Button available between 4:00AM and 6:00AM Local Time</sub>
-            </>)
+                <>
+                    <Button variant="success" disabled>YOU WOKE UP!</Button>
+                    <br></br>
+                    <sub>Button available between 4:00AM and 6:00AM Local Time</sub>
+                </>)
 
         } else if (buttonStatus == "missed") {
             return (
-            <>
-                <Button variant="danger" disabled>Oops! You missed it.</Button>
-                <br></br>
-                <sub>Button available between 4:00AM and 6:00AM Local Time</sub>
-            </>)
+                <>
+                    <Button variant="danger" disabled>Oops! You missed it.</Button>
+                    <br></br>
+                    <sub>Button available between 4:00AM and 6:00AM Local Time</sub>
+                </>)
         }
     }
 
@@ -180,13 +187,15 @@ const Dashboard = () => {
                                 mode: 'index'
                             }}
                             options={{
+                                responsive: true,
+                                aspectRatio: 1.5,
                                 indexAxis: 'x',
                                 scales: {
                                     x: {
                                         stacked: true,
                                         type: 'time',
                                         time: {
-                                            unit: 'day'
+                                            unit: 'day',
                                         },
                                         min: minDate,
                                         max: new Date(),
@@ -196,19 +205,19 @@ const Dashboard = () => {
                                         },
                                     },
                                     y: {
-                                        type: 'time',
-                                        time: {
-                                            unit: 'hour'
-                                        },
-                                        stacked: true,
+                                        min: 3.5,
+                                        max: 6,
+                                        stacked: false,
                                         title: {
                                             display: true,
                                         },
                                         ticks: {
-                                            display: false
+                                            display: true,
+                                            stepSize: 0.5,
+                                            callback: function(value, index, ticks) {
+                                                return value== 3.5? "" : value== 4.5? "4:30 AM": value== 5.5? "5:30 AM" :value + ':00 AM'
+                                            }
                                         },
-                                        max: 1,
-                                        min: 0
                                     },
                                 },
                                 parsing: {
@@ -226,6 +235,11 @@ const Dashboard = () => {
 
                     </Tab>
                     <Tab activeColor="ghostwhite" id="tab" eventKey="leaderboard" title="Leaderboard">
+                        <Form.Select id="select" onChange={(e)=> {setTableData(e.target.value)}}>
+                            <option value="weekly" selected>Weekly Leaderboard</option>
+                            <option value="alltime">All-Time Leaderboard</option>
+                        </Form.Select>
+                        <br></br>
                         <Table striped bordered>
                             <thead>
                                 <tr>
@@ -235,13 +249,20 @@ const Dashboard = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {leaderBoard ? leaderBoard.map((data) => (
+                                {(tableData == "weekly") && weeklyLeaderboard && leaderboard? weeklyLeaderboard.map((data) => (
                                     <tr>
                                         <td style={{ textAlign: "center" }}></td>
                                         <td>{data.name}</td>
                                         <td style={{ textAlign: "center" }}>{data.totalDays}</td>
                                     </tr>
-                                )) : null}
+                                )) : leaderboard.map((data) => (
+                                    <tr>
+                                        <td style={{ textAlign: "center" }}></td>
+                                        <td>{data.name}</td>
+                                        <td style={{ textAlign: "center" }}>{data.totalDays}</td>
+                                    </tr>
+                                ))
+                                    }
                             </tbody>
                         </Table>
                     </Tab>

@@ -5,7 +5,7 @@ import Button from 'react-bootstrap/Button'
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
 import Container from 'react-bootstrap/Container'
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from '../dashboard/dashboard';
 import { useNavigate } from "react-router-dom";
@@ -42,6 +42,7 @@ const Home = () => {
 
     const [loginView, setLoginView] = useState(true)
     const [signInView, setSignInView] = useState(false)
+    const [resetPasswordView, setResetPasswordView] = useState(false)
     const [text, setText] = useState('Create Account')
 
     useEffect(() => {
@@ -57,9 +58,14 @@ const Home = () => {
         const fName = form.fName.value
         const lName = form.lName.value
         const email = form.email.value
-        const password = form.password1.value
+        const password1 = form.password1.value
+        const password2 = form.password2.value
         console.log("before")
-        createUserWithEmailAndPassword(auth, email, password)
+        if (password1 != password2) {
+            alert("Passwords do not match")
+            return
+        }
+        createUserWithEmailAndPassword(auth, email, password1)
             .then(async (userCredential) => {
                 // Signed in 
                 await createUser({
@@ -86,13 +92,31 @@ const Home = () => {
         const form = event.currentTarget
         const email = form.loginEmail.value
         const password = form.loginPassword.value
+        
         console.log("before")
-
+        
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const user = userCredential.user;
                 localStorage.setItem('auth', user.uid)
                 navigate('/dashboard', { replace: true })
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                alert(error.message)
+            });
+    }
+
+    function resetPassword(event) {
+        event.preventDefault()
+        const form = event.currentTarget
+        const email = form.resetEmail.value
+        sendPasswordResetEmail(auth, email)
+            .then(() => {
+                alert("Check your email!")
+                setResetPasswordView(false)
+                setLoginView(true)
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -116,12 +140,14 @@ const Home = () => {
                             <Nav.Link onClick={() => {
                                 setLoginView(true)
                                 setSignInView(false)
+                                setResetPasswordView(false)
                                 setText("Create Account")
 
                             }}>{text}</Nav.Link> :
                             <Nav.Link onClick={() => {
                                 setLoginView(false)
                                 setSignInView(true)
+                                setResetPasswordView(false)
                                 setText("Login")
                             }}>{text}</Nav.Link>
                         }
@@ -135,17 +161,25 @@ const Home = () => {
                     <Form onSubmit={signIn}>
                         <Form.Group className="mb-3" controlId="loginEmail">
                             <Form.Label>Email address</Form.Label>
-                            <Form.Control type="email" placeholder="Email" />
+                            <Form.Control type="email" placeholder="Email" required/>
                         </Form.Group>
 
                         <Form.Group className="mb-3" controlId="loginPassword">
                             <Form.Label>Password</Form.Label>
-                            <Form.Control type="password" placeholder="Password" />
+                            <Form.Control type="password" placeholder="Password" required/>
+                            
                         </Form.Group>
+                        <div>
+                        <a className="resetLink" onClick={() => {
+                                setLoginView(false)
+                                setSignInView(false)
+                                setResetPasswordView(true)
+                                setText("Login")
+                            }}>Forgot your password?</a>
+                            </div>
                         <Button className="button" variant="primary" type="submit">
                             Login
                         </Button>
-
                     </Form>
 
                 </div> : null}
@@ -156,30 +190,44 @@ const Home = () => {
                         <Form onSubmit={createAccount}>
                             <Form.Group className="mb-3" controlId="fName">
                                 <Form.Label>First Name</Form.Label>
-                                <Form.Control type="text" placeholder="Enter First Name" />
+                                <Form.Control type="text" placeholder="Enter First Name" required/>
                             </Form.Group>
 
                             <Form.Group className="mb-3" controlId="lName">
                                 <Form.Label>Last Name</Form.Label>
-                                <Form.Control type="text" placeholder="Enter Last Name" />
+                                <Form.Control type="text" placeholder="Enter Last Name" required/>
                             </Form.Group>
 
                             <Form.Group className="mb-3" controlId="email">
                                 <Form.Label>Email address</Form.Label>
-                                <Form.Control type="email" placeholder="Enter email" />
+                                <Form.Control type="email" placeholder="Enter email" required/>
                             </Form.Group>
 
                             <Form.Group className="mb-3" controlId="password1">
                                 <Form.Label>Password</Form.Label>
-                                <Form.Control type="password" placeholder="Password" />
+                                <Form.Control type="password" placeholder="Password" required/>
                             </Form.Group>
 
                             <Form.Group className="mb-3" controlId="password2">
                                 <Form.Label>Repeat Password</Form.Label>
-                                <Form.Control type="password" placeholder="Password" />
+                                <Form.Control type="password" placeholder="Password" required/>
                             </Form.Group>
                             <Button className="button" variant="success" type="submit" >
                                 Sign Up!
+                            </Button>
+                        </Form>
+                    </div> </div> : null}
+
+            {resetPasswordView ?
+                <div>
+                    <div className="Login">
+                        <Form onSubmit={resetPassword}>
+                            <Form.Group className="mb-3" controlId="resetEmail">
+                                <Form.Label>Email address</Form.Label>
+                                <Form.Control type="email" placeholder="Enter email" required/>
+                            </Form.Group>
+                            <Button className="button" variant="warning" type="submit" >
+                                Reset Password
                             </Button>
                         </Form>
                     </div> </div> : null}

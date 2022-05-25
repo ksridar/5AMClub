@@ -25,5 +25,13 @@
 }
 
 .button {
-    margin: 5px 5px auto;
+    margin: 15px 0px auto;
+}
+
+.resetLink {
+    text-decoration: underline;
+}
+
+.resetLink:hover {
+    cursor: pointer;
 }

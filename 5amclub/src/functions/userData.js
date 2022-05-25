@@ -86,7 +86,6 @@ export async function updateData() {
 
 export async function lastSevenDays() {
     const wokeUp = []
-    const notWokeUp = []
     const min = new Date()
     min.setDate(min.getDate() - 6)
     min.setHours(0, 0, 0, 0)
@@ -96,14 +95,16 @@ export async function lastSevenDays() {
         await getDoc(docRef).then((doc) => {
             doc.data().daysWokeUpArray.map(a => {
                 let d = new Date(a.seconds * 1000)
+                let nd = new Date(a.seconds * 1000)
                 let s = d.setHours(0, 0, 0, 0)
 
                     wokeUp.push({
                         x: s,
-                        y: 1
+                        y: nd.getHours()
                     })
             })
         })
+        console.log(wokeUp)
 
     return {
             wokeUp, min
@@ -127,5 +128,35 @@ export async function getLeaderBoard() {
             return b.totalDays - a.totalDays
         })
         return leaderBoard
-        
+}
+
+export async function getWeeklyLeaderBoard() {
+    let weeklyLeaderBoard = []
+ 
+        const previousMonday = new Date();
+        const date = new Date()
+      
+        previousMonday.setDate(date.getDate() - ((date.getDay() + 7) % 7));
+    
+
+        let q2 = query(collection(db, 'users'))
+        await getDocs(q2).then(querySnapShot => {
+            querySnapShot.forEach((doc) => {
+                let totalDays = 0;
+                doc.data().daysWokeUpArray.map(a => {
+                    let d = new Date(a.seconds * 1000)
+                    if (d >= previousMonday) {
+                        totalDays++
+                    }
+                })
+                weeklyLeaderBoard.push({
+                    name: doc.data().firstName + " " + doc.data().lastName,
+                    totalDays: totalDays
+                })
+            });
+        });
+        weeklyLeaderBoard.sort((a,b)=> {
+            return b.totalDays - a.totalDays
+        })
+        return weeklyLeaderBoard
 }
