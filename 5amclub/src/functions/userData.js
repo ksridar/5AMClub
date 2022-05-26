@@ -91,6 +91,11 @@ export async function lastSevenDays() {
     min.setHours(0, 0, 0, 0)
     const uid = localStorage.getItem('auth')
 
+    function timeToDecimal(t) {
+        t = t.split(':');
+        return parseFloat(parseInt(t[0], 10) + parseInt(t[1], 10)/60);
+    }    
+
         const docRef = doc(db, 'users', uid);
         await getDoc(docRef).then((doc) => {
             doc.data().daysWokeUpArray.map(a => {
@@ -100,7 +105,7 @@ export async function lastSevenDays() {
 
                     wokeUp.push({
                         x: s,
-                        y: nd.getHours()
+                        y: timeToDecimal(nd.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' }))
                     })
             })
         })

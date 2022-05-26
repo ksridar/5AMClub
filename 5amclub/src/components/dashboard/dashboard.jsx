@@ -68,10 +68,12 @@ const Dashboard = () => {
             let l = new Date(latestDate.seconds * 1000)
             console.log(d.toDateString())
             console.log(l.toDateString())
-            if (d.getHours() > 4 && d.getHours() <= 6 && (d.toDateString() != l.toDateString())) {
+            if (d.getHours() >= 4 && d.getHours() <= 5 && (d.toDateString() != l.toDateString())) {
                 setButtonStatus('available')
             } else if (d.toDateString() == l.toDateString()) {
                 setButtonStatus('unavailable')
+            } else {
+                setButtonStatus('missed')
             }
         }
         console.log(weeklyLeaderboard)
@@ -148,15 +150,15 @@ const Dashboard = () => {
                         <Nav.Link onClick={() => {
                             navigate('/home')
                             localStorage.setItem('auth', "loggedOut")
-                        }} style={{ padding: "5px", backgroundColor: "red", color: "white", border: "1px solid red", borderRadius: "12px" }}>Log Out</Nav.Link>
+                        }} style={{ padding: "5px", backgroundColor: "red", color: "white", border: "1px solid red", borderRadius: "5px" }}>Log Out</Nav.Link>
 
                     </Container>
                 </Navbar>
             </div>
-
             <div className="Tab">
                 <Tabs defaultActiveKey="home" id="tab" className="tab">
                     <Tab id="tab" eventKey="home" title="Dashboard" className="innerTab">
+                        {fName? <>
                         <div className="topView">
                             <h6>{time}</h6>
                             <h6>Welcome <i>{fName}!</i></h6>
@@ -231,6 +233,7 @@ const Dashboard = () => {
                                 }
                             }}
                         />
+                        </> : <div className="loading"><div class="lds-ripple"><div></div><div></div></div></div> }
 
 
                     </Tab>
